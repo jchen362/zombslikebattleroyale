@@ -1,0 +1,35 @@
+<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+</head>
+<body>
+    <script src = "/initialize.js" type = "text/javascript"></script>
+    <link rel = "stylesheet" href = "/styles.css">
+    
+    <canvas id = "canvas" style = "display:none"></canvas>
+    <div id = "start" class = "containerForStart">
+        <div class = "start">
+            <label for="playerName">Enter Player Name:</label>
+            <input type="text" id="playerName" name="playerName">
+            <input type="submit" value="Submit" onClick = "test()">
+            <label for="weapon">Class</label>
+            <select name = "weapon" id = "selectWeapons">
+                <option value="pistol" selected>Pistol</option>
+                <option value="sniper">Sniper</option>
+                <option value="rifle">Rifle</option>
+            </select>
+        </div>
+    </div>
+
+    <div id = "end" style = "display:none" onClick = "reset()">
+        GAME OVER: Click to RESTART
+    </div>
+
+    <script src = "/game.js" type = "module"></script>
+</body>
+</html>
