@@ -37,6 +37,7 @@ const ctx = canvas.getContext('2d');
 let projectileVelocity = 2;
 let weaponDmg = 1;
 let coolDown = 600;
+let bulletSize = 8;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -209,7 +210,7 @@ const renderCharacter = (x, y, name, color, health) => {
 
 const renderBullet = (x, y) => {
     ctx.beginPath();
-    ctx.arc(x, y, 8, 0, 2 * Math.PI);
+    ctx.arc(x, y, bulletSize, 0, 2 * Math.PI);
     ctx.closePath();
     ctx.fillStyle = "red";
     ctx.fill();  
@@ -436,16 +437,16 @@ function initGame() {
         let xModifier = 0;
         let yModifier = 0;
         if (keysPressed["w"] === true) { //w (forward)
-            yModifier = -0.35;
+            yModifier = -1.5;
         }  
         if (keysPressed["s"] === true) { //s (backwards)
-            yModifier = 0.35;
+            yModifier = 1.5;
         }
         if (keysPressed["a"] === true) { //a (left)
-            xModifier = -0.35;
+            xModifier = -1.5;
         }
         if (keysPressed["d"] === true) { //d (right)
-            xModifier = 0.35;
+            xModifier = 1.5;
         }
         vx = xModifier;
         vy = yModifier;
@@ -462,61 +463,69 @@ async function checkCollision() {
 
     let tempX = playerData.x + vx;
     let tempY = playerData.y + vy;
-    let collisionRemains = false;
     let closest = Number.MAX_VALUE;
-    const allPlayersSnapShot = await get(allPlayersRef);
-    allPlayersSnapShot.forEach((childSnapshot) => {
-        if (childSnapshot.val().id !== playerId) {
-            let distance = calculateDistance(tempX, tempY, childSnapshot.val().x, childSnapshot.val().y);
-            //console.log(distance);
+    let numIterated = 0;
+    let noCollision = true;
+
+    const allPlayers = await getPlayers();
+    const allWalls = await getWalls();
+
+    for (let i = 0; i < allPlayers.length; i++) {
+        numIterated++;
+        if (allPlayers[i].id !== playerId) {
+            let distance = calculateDistance(tempX, tempY, allPlayers[i].x, allPlayers[i].y);
             if (distance < 34) {
-                collisionRemains = true;
-                if (distance < closest) {
-                    closest = distance;
-                }
-            }
-        }
-
-    })
-
-    const allWallsSnapShot = await get(allWallsRef);
-    allWallsSnapShot.forEach((childSnapshot) => {
-        let closestX = clamp(childSnapshot.val().x, childSnapshot.val().x + childSnapshot.val().width, tempX);
-        let closestY = clamp(childSnapshot.val().y, childSnapshot.val().y + childSnapshot.val().height, tempY);
-        let distance = calculateDistance(tempX, tempY, closestX, closestY);
-        //console.log(distance);
-        if (distance < 20) {
-            collisionRemains = true;
-            if (distance < closest) {
-                closest = distance;
-            }
-        }
-    })
-
-    console.log("closest" + closest);
-    console.log("nearest" + nearestCollisionDistance);
-    if (collisionRemains === true) {
-        if (hasCollision === true) {
-            if (closest > nearestCollisionDistance) {
-                console.log("getting unstuck");
-                nearestCollisionDistance = closest;
-                return;
-            } else {
                 vx = 0;
                 vy = 0;
+                noCollision = false;
             }
-        } else {
+        }
+    }
+
+    for (let i = 0; i < allWalls.length; i++) {
+        let closestX = clamp(allWalls[i].x, allWalls[i].x + allWalls[i].width, tempX);
+        let closestY = clamp(allWalls[i].y, allWalls[i].y + allWalls[i].height, tempY);
+        let distance = calculateDistance(tempX, tempY, closestX, closestY);
+        numIterated++;
+        if (distance < 17) {
+            console.log(distance);
             vx = 0;
             vy = 0;
-            hasCollision = true;
-            nearestCollisionDistance = closest;
+            noCollision = false;
         }
-    } else {
-        nearestCollisionDistance = Number.MAX_VALUE;
-        hasCollision = false;
     }
+
+    /*
+    if (noCollision === true && numIterated === (allWalls.length + allPlayers.length)) {
+        let playerSnapshot = await get(playerRef);
+        const playerData = playerSnapshot.val();
+        set(playerRef, {
+            name: playerData.name,
+            direction: playerData.direction,
+            color: playerData.color,
+            x: playerData.x + vx,
+            y: playerData.y + vy,
+            id: playerId,
+            health: playerData.health,
+        })
+    }
+
     
-    return hasCollision;
+    return true;
+    */
+
+    return set(playerRef, {
+        name: playerData.name,
+        direction: playerData.direction,
+        color: playerData.color,
+        x: playerData.x + vx,
+        y: playerData.y + vy,
+        id: playerId,
+        health: playerData.health,
+    }).then(() => {
+        console.log("write succedded");
+    })
+     
 
 }
 async function getPlayers() {
@@ -569,7 +578,7 @@ async function detectHits(players, bullets, allWalls) {
                 let closestX = clamp(allWalls[j].x, allWalls[j].x + allWalls[j].width, bulletPosX);
                 let closestY = clamp(allWalls[j].y, allWalls[j].y + allWalls[j].height, bulletPosY);
                 let distance = calculateDistance(bulletPosX, bulletPosY, closestX, closestY);
-                if (distance < 20) {
+                if (distance < bulletSize + 17) {
                     console.log(allWalls[j].health);
                     remove(ref(db, `bullets/${bullets[i].id}`));
                     if ((allWalls[j].health - bullets[i].damage) <= 0) {
@@ -669,18 +678,18 @@ async function renderAll() {
     //let numPlayers = playersSnapShot.size;
     //console.log("rendering")
     //let collision = await checkCollision();
-
-        let playerSnapshot = await get(playerRef);
-        const playerData = playerSnapshot.val();
-        set(playerRef, {
-            name: playerData.name,
-            direction: playerData.direction,
-            color: playerData.color,
-            x: playerData.x + vx,
-            y: playerData.y + vy,
-            id: playerId,
-            health: playerData.health,
-        })
+    let playerSnapshot = await get(playerRef);
+    const playerData = playerSnapshot.val();
+    set(playerRef, {
+        name: playerData.name,
+        direction: playerData.direction,
+        color: playerData.color,
+        x: playerData.x + vx,
+        y: playerData.y + vy,
+        id: playerId,
+        health: playerData.health,
+    })
+    
 
     let arr = await getPlayers();
     let arrBullets = await getProjectiles();
