@@ -28,7 +28,7 @@ let grass = [];
 let rocks = [];
 let grassColors = ["rgba(13, 124, 5, 0.8)", "rgba(81, 149, 76, 0.8)", "rgba(89, 201, 123, 0.8)"]
 let rockColors = ["rgba(19, 16, 18, 0.8)", "rgba(109, 103, 106, 0.9)", "rgba(67, 62, 64, 0.9)", "rgba(28, 17, 23, 0.44)"]
-let grassImgs = ["/Images/grassSymbol.png", "/Images/grass-455.png"]
+let grassImgs = ["https://jchen362.github.io/zombslikebattleroyale/Images/grassSymbol.png", "https://jchen362.github.io/zombslikebattleroyale/Images/grass-455.png"]
 let wallCoolDown = 4000;
 let lastWallTime = 0;
 
