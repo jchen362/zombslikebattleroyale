@@ -437,16 +437,16 @@ function initGame() {
         let xModifier = 0;
         let yModifier = 0;
         if (keysPressed["w"] === true) { //w (forward)
-            yModifier = -1.5;
+            yModifier = -0.6;
         }  
         if (keysPressed["s"] === true) { //s (backwards)
-            yModifier = 1.5;
+            yModifier = 0.6;
         }
         if (keysPressed["a"] === true) { //a (left)
-            xModifier = -1.5;
+            xModifier = -0.6;
         }
         if (keysPressed["d"] === true) { //d (right)
-            xModifier = 1.5;
+            xModifier = 0.6;
         }
         vx = xModifier;
         vy = yModifier;
